@@ -18,6 +18,29 @@ from transformers import (
 os.environ["HF_HOME"] = os.getenv("HF_HOME", "/workspace/hf_cache")
 
 DEFAULT_MODEL = "Qwen/Qwen2.5-72B-Instruct"
+
+
+try:
+    from .prompt import DEFAULT_SYSTEM_PROMPT
+
+    if (
+        not isinstance(DEFAULT_SYSTEM_PROMPT, str)
+        or DEFAULT_SYSTEM_PROMPT.strip() == ""
+    ):
+        DEFAULT_SYSTEM_PROMPT = (
+            "You are a helpful and knowledgeable AI assistant. "
+            "Provide clear, accurate, and thoughtful responses to user questions."
+        )
+except ImportError:
+    # Fallback if prompt.py is not available
+    DEFAULT_SYSTEM_PROMPT = (
+        "You are a helpful and knowledgeable AI assistant. "
+        "Provide clear, accurate, and thoughtful responses to user questions."
+    )
+finally:
+    print(f"Using system prompt: {DEFAULT_SYSTEM_PROMPT}")  # type: ignore
+
+
 DEFAULT_SYSTEM_PROMPT = (
     "You are a helpful, respectful, and knowledgeable AI assistant. "
     "Provide clear, accurate, and thoughtful responses to user questions."
