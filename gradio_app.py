@@ -350,6 +350,10 @@ def create_interface(model_name: str):
 
             user_message = history[-1]["content"]
 
+            # Ensure user_message is a string
+            if not isinstance(user_message, str):
+                user_message = str(user_message) if user_message else ""
+
             # Stream the response and update the last message
             global model, tokenizer, system_prompt
 
@@ -363,8 +367,11 @@ def create_interface(model_name: str):
             messages = [{"role": "system", "content": system_prompt}]
             for msg in history[:-1]:  # Exclude the last message
                 if isinstance(msg, dict) and "role" in msg and "content" in msg:
-                    if isinstance(msg["content"], str):  # Ensure content is a string
-                        messages.append(msg)
+                    content = msg["content"]
+                    # Ensure content is always a string
+                    if not isinstance(content, str):
+                        content = str(content) if content else ""
+                    messages.append({"role": msg["role"], "content": content})
 
             # Add the current user message
             messages.append({"role": "user", "content": user_message})
