@@ -22,6 +22,13 @@ echo "📦 Installing dependencies..."
 pip install uv
 uv sync
 
+# Clear GPU cache
+echo ""
+echo "🧹 Clearing GPU cache..."
+uv run python -c "import torch; torch.cuda.empty_cache(); print('✓ GPU cache cleared')"
+
+# Launch with 72B model
+
 # Run diagnostics
 echo ""
 echo "🔍 Running diagnostics..."
