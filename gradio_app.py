@@ -444,8 +444,10 @@ def create_interface(model_name: str):
                 "pad_token_id": tokenizer.eos_token_id,  # type: ignore[attr-defined]
             }
 
-            # Setup streaming
-            streamer = TextIteratorStreamer(tokenizer, skip_special_tokens=True)
+            # Setup streaming with skip_prompt to avoid outputting the input
+            streamer = TextIteratorStreamer(
+                tokenizer, skip_special_tokens=True, skip_prompt=True
+            )
             generate_kwargs["streamer"] = streamer
 
             # Start generation
@@ -456,13 +458,11 @@ def create_interface(model_name: str):
             history.append({"role": "assistant", "content": ""})
             yield filter_system_messages(history)
 
-            # Stream tokens - clean system message patterns as we go
+            # Stream tokens - only the newly generated text (skip_prompt handles this)
             generated_text = ""
             for new_text in streamer:
                 generated_text += new_text
-                # Clean up any system message patterns from the accumulated text
-                cleaned = clean_generated_text(generated_text)
-                history[-1]["content"] = cleaned
+                history[-1]["content"] = generated_text
                 yield filter_system_messages(history)
 
             thread.join()
