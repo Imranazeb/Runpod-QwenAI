@@ -25,7 +25,7 @@ uv sync
 # Run diagnostics
 echo ""
 echo "🔍 Running diagnostics..."
-uv diagnose.py
+uv run diagnose.py
 
 # GPU Selection
 echo ""

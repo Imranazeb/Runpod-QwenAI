@@ -9,11 +9,13 @@ Use the `runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404` template. RTX PRO 6000
 
 **First time:**
 ```bash
-git clone https://github.com/Imranazeb/Runpod-QwenAI .
+git clone https://github.com/Imranazeb/Runpod-QwenAI
+cd Runpod-QwenAI
 chmod +x start_runpod.sh && bash start_runpod.sh
 ```
 
 **Next time:**
 ```bash
+cd Runpod-QwenAI
 bash start_runpod.sh
 ```
