@@ -291,6 +291,7 @@ def create_interface(model_name: str):
         chatbot = gr.Chatbot(
             height=500,
             label="Chat",
+            value=[],
         )
 
         with gr.Row():
@@ -384,24 +385,28 @@ def create_interface(model_name: str):
 
             if model is None or tokenizer is None:
                 history.append({"role": "assistant", "content": "⚠️ Model not loaded."})
-                yield history
+                yield filter_system_messages(history)
                 return
 
-            # Build conversation messages for the model (includes system prompt)
-            # But don't include system prompt in displayed history
-            messages = [{"role": "system", "content": system_prompt}]
+            # Build conversation messages for the model (NO system role to avoid display issues)
+            # Instead, we'll prepend the system prompt directly to the final prompt
+            messages = []
             for msg in history[:-1]:  # Exclude the last message
                 if isinstance(msg, dict) and "role" in msg and "content" in msg:
-                    content = extract_text_from_message(msg["content"])
-                    messages.append({"role": msg["role"], "content": content})
+                    if msg["role"] != "system":  # Skip any system messages
+                        content = extract_text_from_message(msg["content"])
+                        messages.append({"role": msg["role"], "content": content})
 
             # Add the current user message
             messages.append({"role": "user", "content": user_message})
 
-            # Prepare inputs
+            # Prepare inputs - prepend system prompt to the template
             prompt_text = tokenizer.apply_chat_template(  # type: ignore[attr-defined]
                 messages, tokenize=False, add_generation_prompt=True
             )
+            # Manually prepend system prompt if the template doesn't include it
+            if system_prompt not in prompt_text:
+                prompt_text = f"{system_prompt}\n\n{prompt_text}"
             model_inputs = tokenizer(prompt_text, return_tensors="pt")  # type: ignore[operator]
             model_inputs = {
                 name: tensor.to(model.device)  # type: ignore[attr-defined]
@@ -426,14 +431,14 @@ def create_interface(model_name: str):
 
             # Start with an empty assistant message and update it while streaming
             history.append({"role": "assistant", "content": ""})
-            yield history
+            yield filter_system_messages(history)
 
             # Stream tokens
             generated_text = ""
             for new_text in streamer:
                 generated_text += new_text
                 history[-1]["content"] = generated_text
-                yield history
+                yield filter_system_messages(history)
 
             thread.join()
 
