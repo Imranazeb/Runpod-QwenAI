@@ -49,7 +49,7 @@ echo ""
 
 # Launch with 72B model
 model="Qwen/Qwen2.5-72B-Instruct"
-max_memory="70"
+max_memory="80"
 
 echo "🚀 Starting Gradio Web Interface..."
 echo "   Model: $model"
