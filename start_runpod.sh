@@ -30,8 +30,8 @@ uv run diagnose.py
 # Check GPU memory
 echo ""
 echo "🔍 Checking GPU memory..."
-gpu_vram=$(python -c "import torch; print(int(torch.cuda.get_device_properties(0).total_memory / 1024**3)) if torch.cuda.is_available() else 0" 2>/dev/null || echo "0")
-gpu_name=$(python -c "import torch; print(torch.cuda.get_device_name(0)) if torch.cuda.is_available() else 'N/A'" 2>/dev/null || echo "N/A")
+gpu_vram=$(uv run python -c "import torch; print(int(torch.cuda.get_device_properties(0).total_memory / 1024**3)) if torch.cuda.is_available() else 0" 2>/dev/null || echo "0")
+gpu_name=$(uv run python -c "import torch; print(torch.cuda.get_device_name(0)) if torch.cuda.is_available() else 'N/A'" 2>/dev/null || echo "N/A")
 
 echo "GPU: $gpu_name"
 echo "VRAM: ${gpu_vram}GB"
