@@ -184,7 +184,7 @@ if [ "${auto_launch:-false}" = true ]; then
     echo "   Model: $selected_model"
     echo "   Quantization: 8-bit"
     echo ""
-    uv gradio_app.py $base_cmd --load-8bit
+    uv run gradio_app.py $base_cmd --load-8bit
     exit 0
 fi
 
