@@ -63,4 +63,4 @@ echo "   Model: $model"
 echo "   Quantization: 8-bit"
 echo ""
 
-uv run gradio_app.py --model "$model" --max-memory "$max_memory" --load-8bit --share
+uv run gradio_app.py --model "$model" --max-memory "$max_memory" --load-4bit --share
