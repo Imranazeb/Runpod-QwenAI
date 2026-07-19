@@ -362,23 +362,32 @@ def create_interface(model_name: str):
 
         def bot_response(history, max_tokens, temperature):
             """Generate bot response for the last user message."""
-            if not history or history[-1].get("role") != "user":
-                return history if history else []
+            # Filter out system messages from display history
+            display_history = (
+                [msg for msg in history if msg.get("role") != "system"]
+                if history
+                else []
+            )
 
-            user_message = extract_text_from_message(history[-1]["content"])
+            if not display_history or display_history[-1].get("role") != "user":
+                return display_history if display_history else []
+
+            user_message = extract_text_from_message(display_history[-1]["content"])
 
             # Stream the response and update the last message
             global model, tokenizer, system_prompt
 
             if model is None or tokenizer is None:
-                history.append({"role": "assistant", "content": "⚠️ Model not loaded."})
-                yield history
+                display_history.append(
+                    {"role": "assistant", "content": "⚠️ Model not loaded."}
+                )
+                yield display_history
                 return
 
             # Build conversation messages for the model (includes system prompt)
             # But don't include system prompt in displayed history
             messages = [{"role": "system", "content": system_prompt}]
-            for msg in history[:-1]:  # Exclude the last message
+            for msg in display_history[:-1]:  # Exclude the last message
                 if isinstance(msg, dict) and "role" in msg and "content" in msg:
                     content = extract_text_from_message(msg["content"])
                     messages.append({"role": msg["role"], "content": content})
@@ -413,15 +422,15 @@ def create_interface(model_name: str):
             thread.start()
 
             # Start with an empty assistant message and update it while streaming
-            history.append({"role": "assistant", "content": ""})
-            yield history
+            display_history.append({"role": "assistant", "content": ""})
+            yield display_history
 
             # Stream tokens
             generated_text = ""
             for new_text in streamer:
                 generated_text += new_text
-                history[-1]["content"] = generated_text
-                yield history
+                display_history[-1]["content"] = generated_text
+                yield display_history
 
             thread.join()
 
