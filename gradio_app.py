@@ -358,11 +358,16 @@ def create_interface(model_name: str):
                 yield history
                 return
 
-            # Build conversation messages - rebuild from scratch to ensure proper format
+            # Build conversation messages - only include complete user-assistant pairs
+            # Exclude the last message which is the user's current input waiting for a response
             messages = [{"role": "system", "content": system_prompt}]
-            for msg in history:
+            for msg in history[:-1]:  # Exclude the last message
                 if isinstance(msg, dict) and "role" in msg and "content" in msg:
-                    messages.append(msg)
+                    if isinstance(msg["content"], str):  # Ensure content is a string
+                        messages.append(msg)
+
+            # Add the current user message
+            messages.append({"role": "user", "content": user_message})
 
             # Prepare inputs
             prompt_text = tokenizer.apply_chat_template(  # type: ignore[attr-defined]
