@@ -291,6 +291,7 @@ def create_interface(model_name: str):
         chatbot = gr.Chatbot(
             height=500,
             label="Chat",
+            type="messages",
         )
 
         with gr.Row():
@@ -339,6 +340,8 @@ def create_interface(model_name: str):
             """Add user message to history and clear input."""
             if history is None:
                 history = []
+            if not message or not message.strip():
+                return "", history
             return "", history + [{"role": "user", "content": message}]
 
         def bot_response(history, max_tokens, temperature):
@@ -395,11 +398,16 @@ def create_interface(model_name: str):
             thread = Thread(target=model.generate, kwargs=generate_kwargs)  # type: ignore[attr-defined]
             thread.start()
 
+            # Start with an empty assistant message and update it while streaming
+            response_history = history + [{"role": "assistant", "content": ""}]
+            yield response_history
+
             # Stream tokens
             generated_text = ""
             for new_text in streamer:
                 generated_text += new_text
-                yield history + [{"role": "assistant", "content": generated_text}]
+                response_history[-1]["content"] = generated_text
+                yield response_history
 
             thread.join()
 

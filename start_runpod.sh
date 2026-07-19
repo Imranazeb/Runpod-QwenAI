@@ -60,7 +60,7 @@ max_memory="80"
 
 echo "🚀 Starting Gradio Web Interface..."
 echo "   Model: $model"
-echo "   Quantization: 8-bit"
+echo "   Quantization: 4-bit"
 echo ""
 
 uv run gradio_app.py --model "$model" --max-memory "$max_memory" --load-4bit --share
