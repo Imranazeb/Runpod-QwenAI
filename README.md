@@ -3,7 +3,7 @@
 A simple Qwen AI application running on RunPod.
 
 ## Template
-Use the `runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404` template. RTX PRO 6000 GPU with 96GB VRAM is recommended. However can also use RTX 5090 or lower end GPUs. 
+Use the `runpod/pytorch:1.0.2-cu1281-torch280-ubuntu2404` template. RTX PRO 6000 GPU with 96GB VRAM or higher is recommended. Lower end GPUs will fail to run the model. 
 
 ## Quick Start
 
