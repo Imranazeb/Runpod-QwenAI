@@ -291,6 +291,7 @@ def create_interface(model_name: str):
         chatbot = gr.Chatbot(
             height=500,
             label="Chat",
+            type="messages",
         )
 
         with gr.Row():
@@ -341,33 +342,28 @@ def create_interface(model_name: str):
                 history = []
             if not message or not message.strip():
                 return "", history
-            return "", history + [[message, None]]
+            return "", history + [{"role": "user", "content": message}]
 
         def bot_response(history, max_tokens, temperature):
             """Generate bot response for the last user message."""
-            if not history or history[-1][1] is not None:
+            if not history or history[-1].get("role") != "user":
                 return history if history else []
 
-            user_message = history[-1][0]
+            user_message = history[-1]["content"]
 
             # Stream the response and update the last message
             global model, tokenizer, system_prompt
 
             if model is None or tokenizer is None:
-                history[-1][1] = "⚠️ Model not loaded."
+                history.append({"role": "assistant", "content": "⚠️ Model not loaded."})
                 yield history
                 return
 
             # Build conversation messages - rebuild from scratch to ensure proper format
             messages = [{"role": "system", "content": system_prompt}]
-            for user_msg, assistant_msg in history[
-                :-1
-            ]:  # Exclude the last message which hasn't been answered yet
-                messages.append({"role": "user", "content": user_msg})
-                if assistant_msg:
-                    messages.append({"role": "assistant", "content": assistant_msg})
-            # Add the current user message
-            messages.append({"role": "user", "content": user_message})
+            for msg in history:
+                if isinstance(msg, dict) and "role" in msg and "content" in msg:
+                    messages.append(msg)
 
             # Prepare inputs
             prompt_text = tokenizer.apply_chat_template(  # type: ignore[attr-defined]
@@ -396,14 +392,14 @@ def create_interface(model_name: str):
             thread.start()
 
             # Start with an empty assistant message and update it while streaming
-            history[-1][1] = ""
+            history.append({"role": "assistant", "content": ""})
             yield history
 
             # Stream tokens
             generated_text = ""
             for new_text in streamer:
                 generated_text += new_text
-                history[-1][1] = generated_text
+                history[-1]["content"] = generated_text
                 yield history
 
             thread.join()
