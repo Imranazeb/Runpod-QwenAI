@@ -149,7 +149,7 @@ def load_model(
 
         if load_4bit:
             print("\nStep 2/3: Loading model with 4-bit quantization...")
-            print("  This may take 2-5 minutes...")
+            print("  This may take 5-10 minutes...")
             quantization_config = BitsAndBytesConfig(
                 load_in_4bit=True,
                 bnb_4bit_compute_dtype=torch.bfloat16,
