@@ -334,25 +334,38 @@ def create_interface(model_name: str):
             """
         )
 
+        # Helper function to extract text from Gradio message format
+        def extract_text_from_message(content):
+            """Extract plain text from Gradio message format."""
+            if isinstance(content, str):
+                return content
+            elif isinstance(content, list):
+                # Gradio message format: [{'text': '...', 'type': 'text'}, ...]
+                text_parts = []
+                for item in content:
+                    if isinstance(item, dict) and "text" in item:
+                        text_parts.append(item["text"])
+                return "".join(text_parts) if text_parts else str(content)
+            else:
+                return str(content) if content else ""
+
         # Event handlers
         def user_submit(message, history):
             """Add user message to history and clear input."""
             if history is None:
                 history = []
-            if not message or not message.strip():
+
+            message_text = extract_text_from_message(message)
+            if not message_text or not message_text.strip():
                 return "", history
-            return "", history + [{"role": "user", "content": message}]
+            return "", history + [{"role": "user", "content": message_text}]
 
         def bot_response(history, max_tokens, temperature):
             """Generate bot response for the last user message."""
             if not history or history[-1].get("role") != "user":
                 return history if history else []
 
-            user_message = history[-1]["content"]
-
-            # Ensure user_message is a string
-            if not isinstance(user_message, str):
-                user_message = str(user_message) if user_message else ""
+            user_message = extract_text_from_message(history[-1]["content"])
 
             # Stream the response and update the last message
             global model, tokenizer, system_prompt
@@ -362,15 +375,12 @@ def create_interface(model_name: str):
                 yield history
                 return
 
-            # Build conversation messages - only include complete user-assistant pairs
-            # Exclude the last message which is the user's current input waiting for a response
+            # Build conversation messages for the model (includes system prompt)
+            # But don't include system prompt in displayed history
             messages = [{"role": "system", "content": system_prompt}]
             for msg in history[:-1]:  # Exclude the last message
                 if isinstance(msg, dict) and "role" in msg and "content" in msg:
-                    content = msg["content"]
-                    # Ensure content is always a string
-                    if not isinstance(content, str):
-                        content = str(content) if content else ""
+                    content = extract_text_from_message(msg["content"])
                     messages.append({"role": msg["role"], "content": content})
 
             # Add the current user message
