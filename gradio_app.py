@@ -356,29 +356,6 @@ def create_interface(model_name: str):
                 return []
             return [msg for msg in history if msg.get("role") != "system"]
 
-        def clean_generated_text(text):
-            """Remove any system message patterns from generated text."""
-            import re
-
-            # Remove system message headers and content that appears before actual assistant response
-            # Pattern: "system\nYou are..." or "system\nYou are Qwen..."
-            text = re.sub(
-                r"system\s*\n.*?(?=\n(?:user|assistant)|$)",
-                "",
-                text,
-                flags=re.DOTALL | re.IGNORECASE,
-            )
-            # Also remove standalone "system" or "user" labels
-            text = re.sub(r"\b(system|user)\b\s*\n", "", text, flags=re.IGNORECASE)
-            # Clean up any "You are Qwen" or similar patterns
-            text = re.sub(
-                r"You are Qwen.*?Alibaba[^.]*\.",
-                "",
-                text,
-                flags=re.IGNORECASE | re.DOTALL,
-            )
-            return text.strip()
-
         # Event handlers
         def user_submit(message, history):
             """Add user message to history and clear input."""
@@ -427,9 +404,9 @@ def create_interface(model_name: str):
             prompt_text = tokenizer.apply_chat_template(  # type: ignore[attr-defined]
                 messages, tokenize=False, add_generation_prompt=True
             )
-            # Manually prepend system prompt if the template doesn't include it
-            if system_prompt not in prompt_text:
-                prompt_text = f"{system_prompt}\n\n{prompt_text}"
+            # Prepend system prompt to the conversation
+            prompt_text = f"{system_prompt}\n\n{prompt_text}"
+
             model_inputs = tokenizer(prompt_text, return_tensors="pt")  # type: ignore[operator]
             model_inputs = {
                 name: tensor.to(model.device)  # type: ignore[attr-defined]
