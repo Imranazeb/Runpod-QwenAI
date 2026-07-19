@@ -356,6 +356,29 @@ def create_interface(model_name: str):
                 return []
             return [msg for msg in history if msg.get("role") != "system"]
 
+        def clean_generated_text(text):
+            """Remove any system message patterns from generated text."""
+            import re
+
+            # Remove system message headers and content that appears before actual assistant response
+            # Pattern: "system\nYou are..." or "system\nYou are Qwen..."
+            text = re.sub(
+                r"system\s*\n.*?(?=\n(?:user|assistant)|$)",
+                "",
+                text,
+                flags=re.DOTALL | re.IGNORECASE,
+            )
+            # Also remove standalone "system" or "user" labels
+            text = re.sub(r"\b(system|user)\b\s*\n", "", text, flags=re.IGNORECASE)
+            # Clean up any "You are Qwen" or similar patterns
+            text = re.sub(
+                r"You are Qwen.*?Alibaba[^.]*\.",
+                "",
+                text,
+                flags=re.IGNORECASE | re.DOTALL,
+            )
+            return text.strip()
+
         # Event handlers
         def user_submit(message, history):
             """Add user message to history and clear input."""
@@ -433,11 +456,13 @@ def create_interface(model_name: str):
             history.append({"role": "assistant", "content": ""})
             yield filter_system_messages(history)
 
-            # Stream tokens
+            # Stream tokens - clean system message patterns as we go
             generated_text = ""
             for new_text in streamer:
                 generated_text += new_text
-                history[-1]["content"] = generated_text
+                # Clean up any system message patterns from the accumulated text
+                cleaned = clean_generated_text(generated_text)
+                history[-1]["content"] = cleaned
                 yield filter_system_messages(history)
 
             thread.join()
