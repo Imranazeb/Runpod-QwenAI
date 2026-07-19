@@ -291,7 +291,6 @@ def create_interface(model_name: str):
         chatbot = gr.Chatbot(
             height=500,
             label="Chat",
-            type="messages",
         )
 
         with gr.Row():
