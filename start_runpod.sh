@@ -74,7 +74,7 @@ case $gpu_choice in
         echo "� Auto-detecting GPU..."
         # Detect GPU and VRAM
 
-        source .venv/bin/activate
+        source /workspace/.venv/bin/activate
         
         gpu_vram=$(python -c "import torch; print(int(torch.cuda.get_device_properties(0).total_memory / 1024**3)) if torch.cuda.is_available() else 0" 2>/dev/null || echo "0")
         gpu_name=$(python -c "import torch; print(torch.cuda.get_device_name(0)) if torch.cuda.is_available() else 'N/A'" 2>/dev/null || echo "N/A")
